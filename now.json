@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "dist/api/graphql.js",
+      "use": "@now/node@canary"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/graphql",
+      "dest": "dist/api/graphql.js"
+    }
+  ],
+  "env": {}
+}
