@@ -1,0 +1,48 @@
+# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: Node.js CI
+
+on:
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [10.x, 12.x, 14.x]
+
+    steps:
+      - name: Setup PostgreSQL with PostgreSQL extensions and unprivileged user
+        uses: Daniel-Marynicz/postgresql-action@0.1.0
+        with:
+          # Docker postgres image tag for available image tags please see https://hub.docker.com/_/postgres
+          # POSTGRES_USER - create the user with the superuser power
+          postgres_user: secrets.TEST_DATABASE_PASSWORD
+          # POSTGRES_DB - postgres database
+          postgres_db: secrets.TEST_DATABASE_NAME
+          # POSTGRES_PASSWORD - superuser password
+          postgres_password: secrets.TEST_DATABASE_PASSWORD
+          # POSTGRES_EXTENSIONS - List of postgres extensions separated by space to install in template1 database
+          postgres_extensions: pgcrypto
+          # APP_USER - unprivileged postgres user
+          app_user: secrets.TEST_DATABASE_USERNAME
+          # APP_PASSWORD_USER - password for unprivileged postgres user
+          app_user_password: secrets.TEST_DATABASE_PASSWORD
+          # APP_DB - database or list of databases separated by space for unprivileged postgres user
+          app_db: secrets.TEST_DATABASE_NAME
+          # EXPOSED_POSTGRES_PORT - exposed postgres port
+          exposed_postgres_port: secrets.TEST_DATABASE_PORT
+          - uses: actions/checkout@v2
+          - name: Use Node.js ${{ matrix.node-version }}
+            uses: actions/setup-node@v1
+            with:
+              node-version: ${{ matrix.node-version }}
+              
+      - run: npm ci
+      - run: npm run build --if-present
+      - run: npm test
